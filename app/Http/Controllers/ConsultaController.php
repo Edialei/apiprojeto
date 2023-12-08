@@ -16,16 +16,18 @@ class ConsultaController extends Controller
     {
         $validatedData = $request->validate([
             'id_medico' => 'required|exists:medicos,id',
+            'id_paciente' => 'required|exists:paciente,id',
             'horario_consulta' => 'required|date_format:H:i',
             'duracao' => 'required|integer|min:1',
             'data' => 'required|date',
         ]);
     
         // Autenticar o usuário corretamente
-        $user = Auth::user();
+        //$user = Auth::user();
+        $paciente = Paciente::find();
     
         // Certificar-se de que o usuário autenticado tem um perfil de paciente
-        if (!$user || !$user->paciente) {
+        if (!$paciente || !$paciente) {
             return response()->json(['error' => 'Usuário não autorizado ou perfil de paciente não encontrado.'], 401);
         }
     
@@ -41,7 +43,7 @@ class ConsultaController extends Controller
     
         $consulta = Consulta::create([
             'id_medico' => $medico->id,
-            'id_paciente' => $user->paciente->id,
+            'id_paciente' => $paciente->id,
             'horario_inicio' => $validatedData['horario_consulta'] . ':00',
             'horario_termino' => $horarioTermino,
             'duracao' => $validatedData['duracao'],
