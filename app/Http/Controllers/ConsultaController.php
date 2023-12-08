@@ -13,46 +13,48 @@ class ConsultaController extends Controller
 {   
 
     public function storeConsulta(Request $request)
-{
-    $validatedData = $this->validate($request, [
-        'id_medico' => 'required|exists:medicos,id',
-        'horario_consulta' => 'required|date_format:H:i',
-        'duracao' => 'required|integer|min:1',
-        'data' => 'required|date',
-    ]);
-
-    $user = Auth::user();
-
-    if (!$user || !$user->paciente) {
-        return response()->json(['error' => 'Paciente não encontrado.'], 400);
-    }
-
-    $medico = Medico::find($validatedData['id_medico']);
-
-    if (!$medico) {
-        return response()->json(['error' => 'Médico não encontrado.'], 400);
-    }
+    {
+        $validatedData = $request->validate([
+            'id_medico' => 'required|exists:medicos,id',
+            'horario_consulta' => 'required|date_format:H:i',
+            'duracao' => 'required|integer|min:1',
+            'data' => 'required|date',
+        ]);
     
-    $horarioTermino = \Carbon\Carbon::createFromFormat('H:i', $validatedData['horario_consulta'])
-        ->addMinutes($validatedData['duracao'])
-        ->format('H:i:s');
-
-    $consulta = Consulta::create([
-        'id_medico' => $medico->id,
-        'id_paciente' => $user->paciente->id,
-        'horario_inicio' => $validatedData['horario_consulta'] . ':00',
-        'horario_termino' => $horarioTermino,
-        'duracao' => $validatedData['duracao'],
-        'data' => $validatedData['data'],
-    ]);
-
-    return response()->json([
-        'id_consulta' => $consulta->id,
-        'data' => $consulta->data,
-        'horario_inicio' => $consulta->horario_inicio,
-        'horario_termino' => $consulta->horario_termino,
-    ], 201);
-}
+        // Autenticar o usuário corretamente
+        $user = Auth::user();
+    
+        // Certificar-se de que o usuário autenticado tem um perfil de paciente
+        if (!$user || !$user->paciente) {
+            return response()->json(['error' => 'Usuário não autorizado ou perfil de paciente não encontrado.'], 401);
+        }
+    
+        $medico = Medico::find($validatedData['id_medico']);
+    
+        if (!$medico) {
+            return response()->json(['error' => 'Médico não encontrado.'], 400);
+        }
+        
+        $horarioTermino = \Carbon\Carbon::createFromFormat('H:i', $validatedData['horario_consulta'])
+            ->addMinutes($validatedData['duracao'])
+            ->format('H:i:s');
+    
+        $consulta = Consulta::create([
+            'id_medico' => $medico->id,
+            'id_paciente' => $user->paciente->id,
+            'horario_inicio' => $validatedData['horario_consulta'] . ':00',
+            'horario_termino' => $horarioTermino,
+            'duracao' => $validatedData['duracao'],
+            'data' => $validatedData['data'],
+        ]);
+    
+        return response()->json([
+            'id_consulta' => $consulta->id,
+            'data' => $consulta->data,
+            'horario_inicio' => $consulta->horario_inicio,
+            'horario_termino' => $consulta->horario_termino,
+        ], 201);
+    }
 
 
 
