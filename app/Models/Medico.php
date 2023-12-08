@@ -14,7 +14,8 @@ class Medico extends Model
         'bairro',
         'cidade',
         'logradouro',
-        'preco_consulta'
+        'preco_consulta',
+        'aceita_convenio'
     ];
 
     public function user()

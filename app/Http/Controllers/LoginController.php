@@ -4,35 +4,40 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
-    public function index()
-    {
-        return view('login');
-    }
-
     public function store(Request $request)
     {
         $request->validate([
             'usuario' => 'required', 
             'password' => 'required|min:8'
-        ], [
-            'usuario.required' => 'Este campo de usuário é obrigatório.', 
-            'password.required' => 'Este campo de senha é obrigatório.',
-            'password.min' => 'Este campo deve ter no mínimo :min caracteres.',
         ]);
 
-        $credentials = $request->only('usuario', 'password'); 
-        $authenticated = Auth::attempt($credentials);
+        $credentials = $request->only('usuario', 'password');
 
-        if (!$authenticated) {
-            return redirect()->route('login.index')->withErrors(['error' => 'Usuário ou senha inválidos.']);
+        if (!Auth::attempt($credentials) || !Hash::check($request->password, Auth::user()->password)) {
+            return response()->json(['error' => 'Usuário ou senha inválidos'], 401);
         }
 
-        //return redirect()->route('mostrar_medicos')->with('success', 'Logado com sucesso.');
+        $user = Auth::user();
+        $token = $user->createToken('TokenName')->plainTextToken;
 
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'firstName' => $user->firstName,
+                'lastName' => $user->lastName,
+                'email' => $user->email,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at
+            ],
+            'token' => $token,
+            'auth' => true,
+        ]);
     }
+
 
     public function destroy()
     {

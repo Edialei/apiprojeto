@@ -11,7 +11,7 @@ class Prontuario extends Model
         'sintomas',
         'alergias',
         'historico_familiar',
-        'tipo_sanguineo',
+        'tipo_saguineo',
         'medicacoes'
     ];
 
