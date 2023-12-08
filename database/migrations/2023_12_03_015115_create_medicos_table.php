@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignId('id_especialidade')->constrained('medico_especialidades');
             $table->decimal('preco_consulta', 10, 2);
             $table->timestamps();
+            $table->boolean('aceita_convenio')->default(true);
         });
     }
 

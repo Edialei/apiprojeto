@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('cidade');
             $table->string('logradouro');
             $table->timestamps();
+            $table->boolean('possui_convenio')->default(true);
         });
     }
 
