@@ -16,23 +16,21 @@ class ConsultaController extends Controller
     {
         $validatedData = $request->validate([
             'id_medico' => 'required|exists:medicos,id',
-            'id_paciente' => 'required|exists:paciente,id',
+            'id_paciente' => 'required|exists:pacientes,id',
             'horario_consulta' => 'required|date_format:H:i',
             'duracao' => 'required|integer|min:1',
             'data' => 'required|date',
         ]);
-    
-        // Autenticar o usuário corretamente
-        //$user = Auth::user();
-        $paciente = Paciente::find();
-    
-        // Certificar-se de que o usuário autenticado tem um perfil de paciente
-        if (!$paciente || !$paciente) {
-            return response()->json(['error' => 'Usuário não autorizado ou perfil de paciente não encontrado.'], 401);
+        
+        // Verificar se o paciente existe
+        $paciente = Paciente::find($validatedData['id_paciente']);
+        
+        if (!$paciente) {
+            return response()->json(['error' => 'Paciente não encontrado.'], 400);
         }
-    
+        
         $medico = Medico::find($validatedData['id_medico']);
-    
+        
         if (!$medico) {
             return response()->json(['error' => 'Médico não encontrado.'], 400);
         }
@@ -40,7 +38,7 @@ class ConsultaController extends Controller
         $horarioTermino = \Carbon\Carbon::createFromFormat('H:i', $validatedData['horario_consulta'])
             ->addMinutes($validatedData['duracao'])
             ->format('H:i:s');
-    
+        
         $consulta = Consulta::create([
             'id_medico' => $medico->id,
             'id_paciente' => $paciente->id,
@@ -49,7 +47,7 @@ class ConsultaController extends Controller
             'duracao' => $validatedData['duracao'],
             'data' => $validatedData['data'],
         ]);
-    
+        
         return response()->json([
             'id_consulta' => $consulta->id,
             'data' => $consulta->data,
@@ -57,7 +55,6 @@ class ConsultaController extends Controller
             'horario_termino' => $consulta->horario_termino,
         ], 201);
     }
-
 
 
     public function medicoConsulta()
